@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #FFFFFF;
+  --color-surface: #F9F9F9;
+  --color-border: #E8E8E8;
+  --color-accent: #4CAF50;
+  --color-accent-hover: #43A047;
+  --color-text: #1A1A1A;
+  --color-muted: #757575;
+  --font-mono: 'Courier New', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
