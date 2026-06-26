@@ -1,63 +1,117 @@
 import { useState } from 'react'
+import useLocalStorage from './hooks/useLocalStorage'
+import type { Task, CompletedTask } from './types/index'
 import Timer from './components/Timer/Timer'
 import Tasks from './components/Tasks/Tasks'
-import Notes from './components/Notes/Notes'
-import Habits from './components/Habits/Habits'
-
-type Tab = 'timer' | 'tasks' | 'notes' | 'habits'
-
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'timer', label: 'Timer' },
-  { id: 'tasks', label: 'Tasks' },
-  { id: 'notes', label: 'Notes' },
-  { id: 'habits', label: 'Habits' },
-]
+import History from './components/History/History'
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('timer')
+  const [tasks, setTasks] = useLocalStorage<Task[]>('lockd-tasks', [])
+  const [completed, setCompleted] = useLocalStorage<CompletedTask[]>('lockd-completed', [])
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+
+  const activeTask = tasks.find((t) => t.id === activeTaskId) ?? null
+
+  const completeTask = (id: string) => {
+    const task = tasks.find((t) => t.id === id)
+    if (!task) return
+
+    const completedTask: CompletedTask = {
+      id: task.id,
+      text: task.text,
+      completedAt: Date.now(),
+    }
+
+    setCompleted((prev) => [completedTask, ...prev])
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+    if (activeTaskId === id) setActiveTaskId(null)
+  }
+
+  const clearHistory = () => setCompleted([])
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
+    <div
+      className="min-h-screen w-full"
+      style={{ backgroundColor: 'var(--color-bg)' }}
+    >
 
       {/* Header */}
       <header
-        className="border-b px-6 py-4 flex items-center justify-between"
+        className="px-8 py-5 border-b flex items-center justify-between w-full"
         style={{ borderColor: 'var(--color-border)' }}
-      >
-        <h1
-          className="text-xl font-bold tracking-tight"
-          style={{ color: 'var(--color-text)' }}
         >
-          Lockd
-        </h1>
-      </header>
-
-      {/* Tab Navigation */}
-      <nav
-        className="border-b px-6 flex gap-1"
-        style={{ borderColor: 'var(--color-border)' }}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className="px-4 py-3 text-sm font-medium transition-colors cursor-pointer"
+        <div className="flex items-center gap-2">
+          <span
+            className="text-lg font-bold tracking-tight"
+            style={{ color: 'var(--color-text)' }}
+          >
+            Lockd
+          </span>
+          <span
+            className="text-xs px-2 py-0.5 rounded-full font-medium"
             style={{
-              color: activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-muted)',
-              borderBottom: activeTab === tab.id ? '2px solid var(--color-accent)' : '2px solid transparent',
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-muted)',
             }}
           >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+            mvps
+          </span>
+        </div>
+        <span className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          {tasks.length} task{tasks.length !== 1 ? 's' : ''} remaining
+        </span>
+      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        {activeTab === 'timer' && <Timer />}
-        {activeTab === 'tasks' && <Tasks />}
-        {activeTab === 'notes' && <Notes />}
-        {activeTab === 'habits' && <Habits />}
+      {/* Main */}
+      <main className="w-full max-w-6xl mx-auto px-8 py-8 flex flex-col gap-4 items-stretch">
+
+        {/* Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full flex-1">
+
+          {/* Tasks Panel */}
+          <div
+            className="rounded-2xl p-6 w-full"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <Tasks
+              tasks={tasks}
+              setTasks={setTasks}
+              activeTaskId={activeTaskId}
+              setActiveTaskId={setActiveTaskId}
+              onComplete={completeTask}
+            />
+          </div>
+
+          {/* Timer Panel */}
+          <div
+            className="rounded-2xl p-6 w-full"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <Timer activeTask={activeTask} />
+          </div>
+
+        </div>
+
+        {/* History Panel */}
+        {completed.length > 0 && (
+          <div
+            className="rounded-2xl p-6"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <History completed={completed} onClear={clearHistory} />
+          </div>
+        )}
+
       </main>
 
     </div>

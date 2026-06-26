@@ -4,19 +4,18 @@ export interface Task {
   createdAt: number
 }
 
-export interface Habit {
+export interface CompletedTask {
   id: string
-  name: string
-  completedDates: string[] // stored as 'YYYY-MM-DD' strings
+  text: string
+  completedAt: number
 }
 
 export type TimerMode = 'pomodoro' | 'deepwork' | 'custom'
-
 export type TimerPhase = 'work' | 'break'
 
 export interface TimerSettings {
   mode: TimerMode
-  workDuration: number  // in minutes
-  breakDuration: number // in minutes
-  sessions: number      // how many sessions to run
+  workDuration: number
+  breakDuration: number
+  sessions: number
 }
